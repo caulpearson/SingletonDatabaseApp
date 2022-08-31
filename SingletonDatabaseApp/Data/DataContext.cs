@@ -12,3 +12,4 @@ namespace SingletonDatabaseApp.Data
 
         public DbSet<Worker> Workers { get; set; }
     }
+}
