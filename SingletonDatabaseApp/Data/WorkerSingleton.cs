@@ -3,15 +3,17 @@ using System.Data;
 
 namespace SingletonDatabaseApp.Data
 {
-    public sealed class WorkerSingleton
+    public sealed class WorkerSingleton : IWorkerSingleton
     {
         private static WorkerSingleton instance;
+        private IConfiguration _configuration;
         private static object syncObject = new object();
         private readonly DataContext _context;
         DataTable dt = new DataTable();
-        private WorkerSingleton()
+        public WorkerSingleton(IConfiguration configuration)
         {
-            var connectionString = "";
+            _configuration = configuration;
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
             using (SqlConnection Conn = new SqlConnection(connectionString))
             {
                 Conn.Open();
@@ -19,7 +21,7 @@ namespace SingletonDatabaseApp.Data
                 {
                     Console.WriteLine("successfully connected");
                 }
-                string sql = "select * from Workers";
+                string sql = "select * from worker";
                 using (SqlCommand cmd = new SqlCommand(sql))
                 {
                     using (SqlDataAdapter da = new SqlDataAdapter())
@@ -32,7 +34,12 @@ namespace SingletonDatabaseApp.Data
                 }
             }
         }
-        public static WorkerSingleton Instance
+
+        public DataTable GetWorkers()
+        {
+            return dt;
+        }
+        /*public static WorkerSingleton Instance
         {
             get
             {
@@ -49,8 +56,8 @@ namespace SingletonDatabaseApp.Data
                 }
                 return instance;
             }
-        }
-        private static void InitializeInstance()
+        }*/
+        /*private static void InitializeInstance()
         {
             instance = new WorkerSingleton();
         }
@@ -58,6 +65,6 @@ namespace SingletonDatabaseApp.Data
         public DataTable Read()
         {
             return dt;
-        }
+        }*/
     }
 }

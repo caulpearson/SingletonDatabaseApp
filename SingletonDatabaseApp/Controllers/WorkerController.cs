@@ -8,10 +8,16 @@ namespace SingletonDatabaseApp.Controllers
     [Route("[controller]")]
     public class WorkerController : ControllerBase
     {
+        private readonly IWorkerSingleton _workerSingleton;
+        public WorkerController(IWorkerSingleton workerSingleton)
+        {
+            _workerSingleton = workerSingleton;
+        }
+
         [HttpGet(Name = "GetWorkers")]
         public IEnumerable<Worker> Get()
-        { 
-            var ws = WorkerSingleton.Instance;
+        {
+            var ws = _workerSingleton.GetWorkers();
             return new List<Worker>();
         }
     }
