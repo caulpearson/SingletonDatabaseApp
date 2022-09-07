@@ -9,15 +9,17 @@ namespace SingletonDatabaseApp.Data
         private readonly IConfiguration _configuration;
         private static object syncObject = new object();
         DataTable dt = new DataTable();
-        private static Boolean updatingIndicator { get; set; } = false;
+        private static Boolean _updatingIndicator = false;
+        private static int _counter = 0;   
         public WorkerSingleton(IConfiguration configuration)
         {
             _configuration = configuration;
             RetrieveWorkers();
         }
 
-        public void RetrieveWorkers()
+        public async Task RetrieveWorkers()
         {
+            Console.WriteLine("Counter within WorkerSingleton.RetrieveWorkers: " + _counter++);
             var connectionString = _configuration.GetConnectionString("DefaultConnection");
             using (SqlConnection Conn = new SqlConnection(connectionString))
             {
@@ -37,6 +39,7 @@ namespace SingletonDatabaseApp.Data
                         da.Fill(dt);
                     }
                 }
+                Console.WriteLine("DataTable filled");
             }
         }
 
@@ -45,14 +48,22 @@ namespace SingletonDatabaseApp.Data
             return dt;
         }
 
-        public Boolean getUpdatingIndicator()
+        public async Task<bool> getUpdatingIndicator()
         {
-            return updatingIndicator;
+            Boolean updating;
+            lock (syncObject)
+            {
+                updating = _updatingIndicator;
+            }
+            return _updatingIndicator;
         }
 
-        public void setUpdatingIndicator(Boolean updating)
+        public async Task setUpdatingIndicator(bool updating)
         {
-            updatingIndicator = updating;
+            lock (syncObject)
+            {
+                _updatingIndicator = updating;
+            }
         }
     }
 }

@@ -2,6 +2,7 @@
 using SingletonDatabaseApp.Data;
 using SingletonDatabaseApp.Models;
 using System.Data;
+using System.Timers;
 
 namespace SingletonDatabaseApp.Controllers
 {
@@ -10,16 +11,30 @@ namespace SingletonDatabaseApp.Controllers
     public class WorkerController : ControllerBase
     {
         private readonly IWorkerSingleton _workerSingleton;
+        private static System.Timers.Timer? _timer;
+        private static int _counter = 0;
         public WorkerController(IWorkerSingleton workerSingleton)
         {
             _workerSingleton = workerSingleton;
+
+            //SetTimer();
         }
+
+        private void SetTimer()
+        {
+            Console.WriteLine("SetTimer called");
+            _timer = new System.Timers.Timer();
+            _timer.Interval = 2000;
+            _timer.Enabled = true;
+            _timer.Elapsed += Handler;
+        }
+
 
         [HttpGet(Name = "GetWorkers")]
         public IEnumerable<Worker> Get()
         {
             var ws = _workerSingleton.GetWorkers();
-            UpdateWorkers();
+            //UpdateWorkers();
             var updating = _workerSingleton.getUpdatingIndicator();
             List<Worker> workers = new List<Worker>();
             try
@@ -54,26 +69,23 @@ namespace SingletonDatabaseApp.Controllers
             return workers;
         }
 
-        public void UpdateWorkers()
+        private async void Handler(object sender, ElapsedEventArgs args)
         {
-            try
+            Console.WriteLine("Timer handler called at {0} with counter: {1}", args.SignalTime.Second +"."+ args.SignalTime.Millisecond, _counter++);
+            var updating = await _workerSingleton.getUpdatingIndicator();
+            if (!updating)
             {
-                Monitor.Enter(_workerSingleton.getUpdatingIndicator());
-                _workerSingleton.setUpdatingIndicator(true);
-                try
-                {
-                    _workerSingleton.RetrieveWorkers();
-                }
-                finally
-                {
-                    Monitor.Exit(_workerSingleton.getUpdatingIndicator());
-                    _workerSingleton.setUpdatingIndicator(false);
-                }
+                _workerSingleton.setUpdatingIndicator(true).Wait();
+                _workerSingleton.RetrieveWorkers().Wait();
+                _workerSingleton.setUpdatingIndicator(false).Wait();
             }
-            catch (SynchronizationLockException SyncEx)
-            {
-                Console.WriteLine(SyncEx.Message);
-            }
+        }
+
+        [HttpGet("GetUpdateStatus")]
+        public Boolean UpdateStatus()
+        {
+            SetTimer();
+            return true;
         }
     }
 }
