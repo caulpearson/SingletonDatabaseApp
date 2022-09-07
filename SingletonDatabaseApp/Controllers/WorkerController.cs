@@ -24,7 +24,7 @@ namespace SingletonDatabaseApp.Controllers
         {
             Console.WriteLine("SetTimer called");
             _timer = new System.Timers.Timer();
-            _timer.Interval = 2000;
+            _timer.Interval = 50;
             _timer.Enabled = true;
             _timer.Elapsed += Handler;
         }
@@ -85,6 +85,13 @@ namespace SingletonDatabaseApp.Controllers
         public Boolean UpdateStatus()
         {
             SetTimer();
+            return true;
+        }
+
+        [HttpGet("SetTimer")]
+        public Boolean SetSingletonTimer()
+        {
+            _workerSingleton.SetTimer();
             return true;
         }
     }

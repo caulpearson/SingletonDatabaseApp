@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Caching.Memory;
 using System.Data;
+using System.Timers;
 
 namespace SingletonDatabaseApp.Data
 {
@@ -10,11 +11,33 @@ namespace SingletonDatabaseApp.Data
         private static object syncObject = new object();
         DataTable dt = new DataTable();
         private static Boolean _updatingIndicator = false;
-        private static int _counter = 0;   
+        private static int _counter = 0;
+        private static int _handlerCounter = 0;
+        private static System.Timers.Timer? _timer;
         public WorkerSingleton(IConfiguration configuration)
         {
             _configuration = configuration;
-            RetrieveWorkers();
+            //SetTimer();
+        }
+        public void SetTimer()
+        {
+            Console.WriteLine("SetTimer called");
+            _timer = new System.Timers.Timer();
+            _timer.Interval = 500;
+            _timer.Enabled = true;
+            _timer.Elapsed += Handler;
+        }
+
+        private async void Handler(object sender, ElapsedEventArgs args)
+        {
+            Console.WriteLine("Timer handler called at {0} with handler counter: {1}", args.SignalTime.Second + "." + args.SignalTime.Millisecond, _handlerCounter++);
+            var updating = await getUpdatingIndicator();
+            if (!updating)
+            {
+                setUpdatingIndicator(true).Wait();
+                RetrieveWorkers().Wait();
+                setUpdatingIndicator(false).Wait();
+            }
         }
 
         public async Task RetrieveWorkers()

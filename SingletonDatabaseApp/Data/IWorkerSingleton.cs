@@ -8,5 +8,6 @@ namespace SingletonDatabaseApp.Data
         Task RetrieveWorkers();
         Task<bool> getUpdatingIndicator();
         Task setUpdatingIndicator(bool updating);
+        void SetTimer();
     }
 }

@@ -27,5 +27,5 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
-
+//app.Services.GetService<IWorkerSingleton>();
 app.Run();
