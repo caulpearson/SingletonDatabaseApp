@@ -66,6 +66,8 @@ namespace SingletonDatabaseApp.Data
                 }
 
                 setUpdatingIndicator(false).Wait();
+            } else {
+                Console.WriteLine("Refresh Blocked: Data Refresh in Progress");
             }
             
         }
