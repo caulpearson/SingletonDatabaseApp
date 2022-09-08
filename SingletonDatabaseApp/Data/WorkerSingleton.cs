@@ -23,7 +23,7 @@ namespace SingletonDatabaseApp.Data
         {
             Console.WriteLine("SetTimer called");
             _timer = new System.Timers.Timer();
-            _timer.Interval = 500;
+            _timer.Interval = 250;
             _timer.Enabled = true;
             _timer.Elapsed += Handler;
         }
@@ -31,39 +31,43 @@ namespace SingletonDatabaseApp.Data
         private async void Handler(object sender, ElapsedEventArgs args)
         {
             Console.WriteLine("Timer handler called at {0} with handler counter: {1}", args.SignalTime.Second + "." + args.SignalTime.Millisecond, _handlerCounter++);
-            var updating = await getUpdatingIndicator();
-            if (!updating)
-            {
-                setUpdatingIndicator(true).Wait();
-                RetrieveWorkers().Wait();
-                setUpdatingIndicator(false).Wait();
-            }
+            RetrieveWorkers().Wait();
         }
 
         public async Task RetrieveWorkers()
         {
-            Console.WriteLine("Counter within WorkerSingleton.RetrieveWorkers: " + _counter++);
-            var connectionString = _configuration.GetConnectionString("DefaultConnection");
-            using (SqlConnection Conn = new SqlConnection(connectionString))
+            var updating = await getUpdatingIndicator();
+
+            if (!updating)
             {
-                Conn.Open();
-                if (Conn.State == System.Data.ConnectionState.Open)
+                setUpdatingIndicator(true).Wait();
+
+                Console.WriteLine("Counter within WorkerSingleton.RetrieveWorkers: " + _counter++);
+                var connectionString = _configuration.GetConnectionString("DefaultConnection");
+                using (SqlConnection Conn = new SqlConnection(connectionString))
                 {
-                    Console.WriteLine("successfully connected");
-                }
-                string sql = "select * from worker";
-                using (SqlCommand cmd = new SqlCommand(sql))
-                {
-                    using (SqlDataAdapter da = new SqlDataAdapter())
+                    Conn.Open();
+                    if (Conn.State == System.Data.ConnectionState.Open)
                     {
-                        cmd.CommandType = CommandType.Text;
-                        cmd.Connection = Conn;
-                        da.SelectCommand = cmd;
-                        da.Fill(dt);
+                        Console.WriteLine("successfully connected");
                     }
+                    string sql = "select * from worker";
+                    using (SqlCommand cmd = new SqlCommand(sql))
+                    {
+                        using (SqlDataAdapter da = new SqlDataAdapter())
+                        {
+                            cmd.CommandType = CommandType.Text;
+                            cmd.Connection = Conn;
+                            da.SelectCommand = cmd;
+                            da.Fill(dt);
+                        }
+                    }
+                    Console.WriteLine("DataTable filled");
                 }
-                Console.WriteLine("DataTable filled");
+
+                setUpdatingIndicator(false).Wait();
             }
+            
         }
 
         public DataTable GetWorkers()

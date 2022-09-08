@@ -30,7 +30,7 @@ namespace SingletonDatabaseApp.Controllers
         }
 
 
-        [HttpGet(Name = "GetWorkers")]
+        [HttpGet("GetWorkers")]
         public IEnumerable<Worker> Get()
         {
             var ws = _workerSingleton.GetWorkers();
@@ -81,17 +81,24 @@ namespace SingletonDatabaseApp.Controllers
             }
         }
 
-        [HttpGet("GetUpdateStatus")]
-        public Boolean UpdateStatus()
+        /*[HttpGet("SetControllerTimer")]
+        public Boolean SetControllerTimer()
         {
             SetTimer();
             return true;
-        }
+        }*/
 
-        [HttpGet("SetTimer")]
+        [HttpGet("SetUpdateTimer")]
         public Boolean SetSingletonTimer()
         {
             _workerSingleton.SetTimer();
+            return true;
+        }
+
+        [HttpGet("UpdateWorkers")]
+        public Boolean UpdateWorkers()
+        {
+            _workerSingleton.RetrieveWorkers();
             return true;
         }
     }
