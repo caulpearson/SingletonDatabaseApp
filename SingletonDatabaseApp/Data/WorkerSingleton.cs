@@ -31,7 +31,23 @@ namespace SingletonDatabaseApp.Data
         private async void Handler(object sender, ElapsedEventArgs args)
         {
             Console.WriteLine("Timer handler called at {0} with handler counter: {1}", args.SignalTime.Second + "." + args.SignalTime.Millisecond, _handlerCounter++);
-            RetrieveWorkers().Wait();
+            var tasks = new List<Task>();
+            tasks.Add(Task.Run(() =>
+            {
+                RetrieveWorkers().Wait();
+            }));
+            tasks.Add(Task.Run(() =>
+            {
+                Console.WriteLine("Counter within second task is {0}", _handlerCounter);
+            }));
+            Task t = Task.WhenAll(tasks);
+            try
+            {
+                t.Wait();
+            }
+            catch
+            {
+            }
         }
 
         public async Task RetrieveWorkers()
